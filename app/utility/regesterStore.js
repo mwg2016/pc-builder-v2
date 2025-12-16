@@ -142,7 +142,7 @@ export async function registerStore(session, admin) {
     console.log("🎉 Store registration completed successfully");
  // --- Send welcome email ---
     console.log("emial for sendWelcomeEmail", shopInfo.name,"----", shopInfo?.email, "-----", import.meta.env.APP_NAME )
-    await sendWelcomeEmail(shopInfo.name, shopInfo?.email, import.meta.env.APP_NAME);
+    // await sendWelcomeEmail(shopInfo.name, shopInfo?.email, import.meta.env.APP_NAME);
   } catch (error) {
     console.error("🔥 Register Store Error:", error);
   }

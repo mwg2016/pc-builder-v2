@@ -32,9 +32,57 @@ model User {
   domain         String    @unique
   email          String?
   currency       String?
-  storeCreatedAt DateTime?
+  storeCreatedAt DateTime? @db.Timestamp(6)
   userStatus     String    @default("ACTIVE")
   free           Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime
+  createdAt      DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime  @db.Timestamp(6)
+}
+
+model Feature {
+  id        Int      @id @default(autoincrement())
+  subject   String
+  email     String
+  message   String
+  imageUrl  String?  @db.VarChar(255)
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+}
+
+model Subscription {
+  id                     Int      @id @default(autoincrement())
+  store_id               String?  @db.VarChar(255)
+  subscription_charge_id Int?
+  subscription_plan_id   Int?
+  started_at             String?  @db.VarChar(50)
+  updated_at             String?  @db.VarChar(50)
+  cancel_at              String?  @db.VarChar(50)
+  renew_at               String?  @db.VarChar(50)
+  is_active              Boolean?
+}
+
+model SubscriptionRenew {
+  id                     Int    @id @default(autoincrement())
+  storeid                String @db.VarChar(255)
+  subscription_charge_id Int
+  subscription_plan_id   Int
+  started_at             String @db.VarChar(50)
+}
+
+model WidgetList {
+  id        String   @id @db.VarChar(255)
+  name      String   @db.VarChar(255)
+  status    String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @db.Timestamp(6)
+  storeid   String?  @db.VarChar(255)
+}
+
+model Pricing {
+  id               Int      @id @default(autoincrement())
+  name             String
+  price            Float
+  pricing_features String
+  trial_orders     Int?
+  createdAt        DateTime @default(now())
 }
