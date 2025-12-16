@@ -7,6 +7,7 @@ import {
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
+import { registerStore } from "./utility/regesterStore";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -39,11 +40,14 @@ const shopify = shopifyApp({
       callbackUrl: "/webhooks",
     },
   },
-  hooks: {
-    afterAuth: async ({ session }) => {
+hooks: {
+    afterAuth: async ({ session, admin }) => {
       shopify.registerWebhooks({ session });
-      console.log('app installation...', session);
-      // regesterStore(session);
+      console.log('rerereerererer', session);
+      console.log('fghjkl', admin);
+      registerStore(session, admin);
+      console.log('gtdzf');
+      
     },
   },
   ...(process.env.SHOP_CUSTOM_DOMAIN
