@@ -1,6 +1,6 @@
 import prisma from "../db.server";
 import { authenticate } from "../shopify.server";
-import { sendGoodbyeEmail } from "../utils/email.server";
+import { sendGoodbyeEmail } from "../utility/mail";
 export const action = async ({ request }) => {
   const { shop, topic, payload } = await authenticate.webhook(request);
 
