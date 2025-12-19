@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { SaveBar, useAppBridge } from "@shopify/app-bridge-react"; // Import App Bridge components
 import {
   DndContext,
   closestCenter,
@@ -15,30 +16,43 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import StepCard from "../components/StepCard"; // Ensure this path matches your folder structure
+import StepCard from "../components/StepCard";
 
 export default function AddSteps({ widgetId }) {
-  const [steps, setSteps] = useState([
-    { id: 1, title: "Select Processor (CPU)", collection: "Processors", collectionId: "", isUnsaved: false },
-    { id: 2, title: "Select Motherboard", collection: "Motherboards", collectionId: "", isUnsaved: false },
+  const shopify = useAppBridge(); // Initialize App Bridge
+
+  // 1. "initialSteps" keeps the snapshot of the last saved state
+  const [initialSteps, setInitialSteps] = useState([
+    { id: "1", title: "Select Processor (CPU)", collection: "Processors", collectionId: "" },
+    { id: "2", title: "Select Motherboard", collection: "Motherboards", collectionId: "" },
   ]);
 
-  // 1. Configure sensors (prevents accidental drags when clicking inputs)
+  // 2. "steps" is the working state the user interacts with
+  const [steps, setSteps] = useState(initialSteps);
+  const [isDirty, setIsDirty] = useState(false);
+
+  // 3. Automatically detect changes
+  useEffect(() => {
+    const hasChanges = JSON.stringify(steps) !== JSON.stringify(initialSteps);
+    setIsDirty(hasChanges);
+    
+    // Optional: Auto-show if you want it to appear immediately on change
+    if (hasChanges) {
+        shopify.saveBar.show('my-save-bar');
+    } else {
+        shopify.saveBar.hide('my-save-bar');
+    }
+
+  }, [steps, initialSteps, shopify]);
+
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-        activationConstraint: { distance: 5 }, 
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   const handleAddStep = () => {
-    const newId = Date.now(); // Unique ID required for drag keys
-    setSteps([
-      ...steps,
-      { id: newId, title: "", collection: "", collectionId: "", isUnsaved: true },
-    ]);
+    const newId = Date.now().toString();
+    setSteps([...steps, { id: newId, title: "", collection: "", collectionId: "" }]);
   };
 
   const handleRemoveStep = (idToRemove) => {
@@ -47,18 +61,10 @@ export default function AddSteps({ widgetId }) {
 
   const updateStep = (id, updates) => {
     setSteps((prevSteps) =>
-      prevSteps.map((step) => (step.id === id ? { ...step, ...updates, isUnsaved: true } : step))
+      prevSteps.map((step) => (step.id === id ? { ...step, ...updates } : step))
     );
   };
 
-  const handleSaveStep = (id) => {
-    console.log("Saving step:", id);
-    setSteps((prevSteps) =>
-      prevSteps.map((step) => (step.id === id ? { ...step, isUnsaved: false } : step))
-    );
-  };
-
-  // 2. Handle the reordering logic
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (active.id !== over.id) {
@@ -70,8 +76,31 @@ export default function AddSteps({ widgetId }) {
     }
   };
 
+  // 4. Revert to original state
+  const handleDiscard = () => {
+    console.log('Discarding');
+    setSteps(initialSteps); // Revert data
+    shopify.saveBar.hide('my-save-bar'); // Hide bar
+  };
+
+  // 5. Commit changes
+  const handleSave = () => {
+    console.log('Saving');
+    setInitialSteps(steps); // Update "Saved" reference
+    shopify.saveBar.hide('my-save-bar'); // Hide bar
+  };
+
   return (
     <s-page narrowwidth>
+      {/* APP BRIDGE SAVE BAR 
+         We render it conditionally or always, but "isDirty" logic controls its behavior.
+         Since we are using imperative .show()/.hide() in useEffect, we can keep it rendered.
+      */}
+      <SaveBar id="my-save-bar">
+        <button variant="primary" onClick={handleSave}>Save</button>
+        <button onClick={handleDiscard}>Discard</button>
+      </SaveBar>
+
       <s-section padding="none" maxWidth="1000px" margin="auto">
         <s-stack direction="inline" justifyContent="space-between" padding="base" alignItems="center">
           <s-heading>Steps ({steps.length})</s-heading>
@@ -80,7 +109,6 @@ export default function AddSteps({ widgetId }) {
           </s-button>
         </s-stack>
 
-        {/* 3. Wrap list in DndContext and SortableContext */}
         <DndContext 
           sensors={sensors} 
           collisionDetection={closestCenter} 
@@ -98,43 +126,29 @@ export default function AddSteps({ widgetId }) {
                   index={index}
                   onUpdate={updateStep}
                   onRemove={handleRemoveStep}
-                  onSave={handleSaveStep}
                 />
               ))}
             </s-stack>
           </SortableContext>
         </DndContext>
-
       </s-section>
     </s-page>
   );
 }
 
-// --- Helper Component (Keep this in this file) ---
 function SortableStepWrapper(props) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging
-  } = useSortable({ id: props.step.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.step.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 999 : "auto", 
+    zIndex: isDragging ? 999 : "auto",
     position: "relative",
   };
 
-  // Pass the drag listeners down to the StepCard via `dragHandleProps`
   return (
     <div ref={setNodeRef} style={style}>
-      <StepCard 
-        {...props} 
-        dragHandleProps={{ ...attributes, ...listeners }} 
-      />
+      <StepCard {...props} dragHandleProps={{ ...attributes, ...listeners }} />
     </div>
   );
 }

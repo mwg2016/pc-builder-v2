@@ -1,7 +1,6 @@
 import React from "react";
 
-// Added dragHandleProps to the arguments
-export default function StepCard({ step, index, onUpdate, onRemove, onSave, dragHandleProps }) {
+export default function StepCard({ step, index, onUpdate, onRemove, dragHandleProps }) {
   
   const handleBrowse = async () => {
     const selectionIds = step.collectionId ? [{ id: step.collectionId }] : [];
@@ -29,16 +28,32 @@ export default function StepCard({ step, index, onUpdate, onRemove, onSave, drag
     <s-box padding="base" border="base" borderRadius="base" background="surface">
       <s-stack direction="inline" gap="base" alignItems="center" width="100%">
         
-        {/* ATTACH DRAG LISTENERS HERE */}
-        <s-stack 
-            direction="inline" 
-            alignItems="center" 
-            gap="xs" 
+        {/* NEW DRAG HANDLE: Using direct SVG for guaranteed visibility */}
+        <div 
             {...dragHandleProps} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'grab', 
+              touchAction: 'none',
+              paddingRight: '10px'
+            }}
+            title="Drag to reorder"
         >
-          <s-icon name="drag-handle" color="subdued" />
-          <s-text variant="bodySm" color="subdued">{index + 1}</s-text>
-        </s-stack>
+           <svg 
+             viewBox="0 0 20 20" 
+             width="20" 
+             height="20" 
+             fill="#5c5f62" // Subdued color standard
+           >
+             <path d="M7 2a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM17 2a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM7 10a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM17 10a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM7 18a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM17 18a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z" />
+           </svg>
+        </div>
+
+        {/* Numbering */}
+        <div style={{ minWidth: "24px" }}>
+            <s-text variant="bodySm" color="subdued">{index + 1}.</s-text>
+        </div>
 
         <s-box flex="1">
           <s-text-field 
@@ -59,12 +74,6 @@ export default function StepCard({ step, index, onUpdate, onRemove, onSave, drag
         </s-box>
 
         <s-button onClick={handleBrowse}>Browse</s-button>
-
-        {step.isUnsaved && (
-          <s-button variant="primary" onClick={() => onSave(step.id)}>
-            Save
-          </s-button>
-        )}
 
         <s-button plain icon="delete" tone="critical" onClick={() => onRemove(step.id)} />
 
