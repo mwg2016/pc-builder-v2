@@ -9,7 +9,9 @@ export const loader = async ({ request }) => {
 
     const response = await admin.graphql(`query { shop { id } }`);
     const result = await response.json();
-    const shopId = result?.data?.shop?.id?.split("/").pop();
+    // const shopId = result?.data?.shop?.id?.split("/").pop();
+    const shopId = result?.data?.shop?.id;
+    console.log('shopIdddddddddddd', shopId)
 
     if (!shopId) throw new Error("Shop ID not found");
 
