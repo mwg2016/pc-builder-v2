@@ -22,7 +22,7 @@ export const loader = async ({ request, params }) => {
     const formattedSteps = dbSteps.map((step) => ({
       id: String(step.sno),
       title: step.collection_name || "",
-      collection: step.collection_name || "",
+      collection: step.selected_collection || "",
       collectionId: step.collection_id || "",
     }));
 
@@ -76,6 +76,7 @@ export const action = async ({ request, params }) => {
           const data = {};
           if (existing.collection_name !== step.title) data.collection_name = step.title;
           if (existing.collection_id !== step.collectionId) data.collection_id = step.collectionId;
+          if (existing.selected_collection !== step.collection) data.selected_collection = step.collection;
           if (existing.order !== index) data.order = index;
 
           if (Object.keys(data).length > 0) {
@@ -122,6 +123,7 @@ export default function EditWidget() {
   const [steps, setSteps] = useState(serverSteps || []);
   const [initialMeta, setInitialMeta] = useState({ name: widgetList.name, status: widgetList.status });
   const [meta, setMeta] = useState({ name: widgetList.name, status: widgetList.status });
+  const [requiredBlank, setRequiredBlank] = useState(false);
 
   const isLoading = nav.state === "submitting" || nav.state === "loading";
 
@@ -157,6 +159,7 @@ export default function EditWidget() {
   const handleRemoveStep = (id) => setSteps(steps.filter((s) => s.id !== id));
 
   const updateStep = (id, updates) => {
+    setRequiredBlank(updates.title === '' ? true : false)
     setSteps(prev => prev.map(s => (s.id === id ? { ...s, ...updates } : s)));
   };
 
@@ -189,7 +192,7 @@ export default function EditWidget() {
   return (
     <s-page fullWidth title="Edit Widget">
       <SaveBar id="my-save-bar">
-        <button variant="primary" onClick={handleSave} disabled={isLoading}>{isLoading ? "Saving..." : "Save"}</button>
+        <button variant="primary" onClick={handleSave} disabled={isLoading || requiredBlank}>Save</button>
         <button onClick={handleDiscard} disabled={isLoading}>Discard</button>
       </SaveBar>
 
@@ -202,7 +205,6 @@ export default function EditWidget() {
               <s-button icon="arrow-left" plain onClick={() => navigate("/app")} />
               
               <s-stack gap="none">
-                <s-text variant="headingMd" as="h2">Widget Settings</s-text>
                 
                 <s-stack 
                   direction="inline" 
@@ -226,6 +228,7 @@ export default function EditWidget() {
                   placeholder="Widget Title" 
                   onChange={(e) => setMeta({ ...meta, name: e.target.value })}
                   autoComplete="off"
+                  readOnly={isLoading}
                 />
               </s-box>
               
@@ -233,6 +236,7 @@ export default function EditWidget() {
                 <s-select
                   label="Status"
                   value={meta.status}
+                  disabled={isLoading}
                   onChange={(e) => setMeta({ ...meta, status: e.target.value })}>
                   <s-option value="ACTIVE">ACTIVE</s-option>
                   <s-option value="INACTIVE">INACTIVE</s-option>
@@ -248,6 +252,7 @@ export default function EditWidget() {
           onRemove={handleRemoveStep}
           onUpdate={updateStep}
           onDragEnd={handleDragEnd}
+          disableAllBtn={isLoading}
         />
       </s-stack>
     </s-page>

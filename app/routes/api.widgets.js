@@ -59,6 +59,7 @@ export async function action({ request }) {
 
       if (id) {
         await prisma.WidgetList.deleteMany({ where: { id } });
+        await prisma.Widget.deleteMany({ where: { widget_id: id } });
       }
 
       return Response.json({ success: true });

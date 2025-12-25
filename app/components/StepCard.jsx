@@ -1,4 +1,4 @@
-export default function StepCard({ step, index, onUpdate, onRemove, dragHandleProps }) {
+export default function StepCard({ step, index, onUpdate, onRemove, dragHandleProps, disableAllBtn }) {
   const handleBrowse = async () => {
     try {
       const response = await window.shopify.resourcePicker({
@@ -35,14 +35,26 @@ export default function StepCard({ step, index, onUpdate, onRemove, dragHandlePr
             placeholder="Step Title" 
             width="100%"
             onChange={(e) => onUpdate(step.id, { title: e.target.value })}
+            error={!step.title.trim() ? "Required" : undefined}
+            readOnly={disableAllBtn}
           />
         </s-box>
 
-        <s-button variant={step.collectionId ? undefined : "primary"} onClick={handleBrowse}>
+        
+        <s-box flex="1">
+          <s-text-field 
+            value={step.collection} 
+            placeholder="-" 
+            width="100%"
+            readOnly
+          />
+        </s-box>
+
+        <s-button variant="primary" onClick={handleBrowse} disabled={disableAllBtn}>
           {step.collectionId ? "Change Collection" : "Select Collection"}
         </s-button>
 
-        <s-button plain icon="delete" tone="critical" onClick={() => onRemove(step.id)} />
+        <s-button plain icon="delete" tone="critical" onClick={() => onRemove(step.id)} disabled={disableAllBtn} />
       </s-stack>
     </s-box>
   );
