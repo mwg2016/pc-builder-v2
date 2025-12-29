@@ -39,7 +39,16 @@ model User {
   updatedAt      DateTime  @db.Timestamp(6)
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model Feature {
+  id        Int      @id @default(autoincrement())
+  subject   String
+  email     String
+  message   String
+  imageUrl  String?  @db.VarChar(255)
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+}
+
 model Subscription {
   id                     Int       @id @default(autoincrement())
   store_id               String?   @db.VarChar(255)
@@ -50,17 +59,6 @@ model Subscription {
   cancel_at              DateTime? @db.Timestamp(6)
   renew_at               DateTime? @db.Timestamp(6)
   is_active              Boolean?
-
-  @@ignore
-}
-
-model WidgetList {
-  id        String   @id @db.VarChar(255)
-  name      String   @db.VarChar(255)
-  status    String   @db.VarChar(255)
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @default(now()) @db.Timestamp(6)
-  storeid   String?  @db.VarChar(255)
 }
 
 model SubscriptionRenew {
@@ -71,14 +69,13 @@ model SubscriptionRenew {
   started_at             String @db.VarChar(50)
 }
 
-model Feature {
-  id        Int      @id @default(autoincrement())
-  subject   String
-  email     String
-  message   String
-  imageUrl  String?  @db.VarChar(255)
-  status    String   @default("ACTIVE")
+model WidgetList {
+  id        String   @id @db.VarChar(255)
+  name      String   @db.VarChar(255)
+  status    String   @db.VarChar(255)
   createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @db.Timestamp(6)
+  storeid   String?  @db.VarChar(255)
 }
 
 model Pricing {
@@ -91,12 +88,11 @@ model Pricing {
 }
 
 model Widget {
-  sno                 Int       @id(map: "widget_pkey") @default(autoincrement())
-  widget_id           String?   @db.VarChar(255)
-  collection_name     String?   @db.VarChar(255)
-  collection_id       String?   @db.VarChar(255)
-  order               Int?
-  created_at          DateTime? @default(now()) @db.Timestamp(6)
-  updated_at          DateTime? @default(now()) @db.Timestamp(6)
-  selected_collection String?   @db.VarChar
+  sno             Int       @id(map: "widget_pkey") @default(autoincrement())
+  widget_id       String?   @db.VarChar(255)
+  collection_name String?   @db.VarChar(255)
+  collection_id   String?   @db.VarChar(255)
+  order           Int?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
 }
